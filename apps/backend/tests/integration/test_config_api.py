@@ -688,13 +688,13 @@ class TestRequiresBaseUrlValidation:
         async with client:
             resp = await client.put(
                 "/api/v1/config/llm-api-key",
-                json={"provider": "openai", "model": "gpt-5-nano-2025-08-07"},
+                json={"provider": "openai", "model": "openai/gpt-6.1-sol"},
             )
 
         assert resp.status_code == 200
         assert json.loads((tmp_path / "data" / "config.json").read_text()) == {
             "provider": "openai",
-            "model": "gpt-5-nano-2025-08-07",
+            "model": "openai/gpt-6.1-sol",
         }
         mock_health.assert_awaited_once()
         assert sentinel_path.read_text() == '{"sentinel": "developer-state"}'

@@ -351,7 +351,7 @@ class TestModelSelection:
             None,
             "",
             "claude_cli",  # the settings page's "Claude Code default"
-            "gpt-5-nano-2025-08-07",  # LLM_MODEL's default left in .env
+            "openai/gpt-6.1-sol",  # LLM_MODEL's default left in .env
             "--dangerously-skip-permissions",
             "sonnet --tools Bash",
             'claude-x" & calc',

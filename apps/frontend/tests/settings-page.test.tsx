@@ -429,7 +429,7 @@ describe('settings page (Swiss sweep)', () => {
     // A stale LLM_MODEL from .env is not forwarded to the CLI, so it runs the default.
     api.fetchLlmConfig.mockResolvedValue({
       provider: 'claude_cli',
-      model: 'gpt-5-nano-2025-08-07',
+      model: 'openai/gpt-6.1-sol',
       api_base: null,
       reasoning_effort: null,
     });

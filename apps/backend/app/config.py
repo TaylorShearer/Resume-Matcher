@@ -307,7 +307,7 @@ class Settings(BaseSettings):
         "chatgpt",
         "agent",
     ] = "openai"
-    llm_model: str = "gpt-5-nano-2025-08-07"
+    llm_model: str = "openai/gpt-6.1-sol"
     llm_api_key: str = ""
     llm_api_base: str | None = None  # For Ollama or custom endpoints
     log_llm: Literal["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"] = "WARNING"

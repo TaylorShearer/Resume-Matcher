@@ -96,7 +96,7 @@ def test_restricted_and_unknown_models_omit_serialized_sampling(
     """Nano, explicit reasoning, and registry misses remain conservative."""
     keys = (
         "openai|gpt-5.1|medium|0.7",
-        "openai|gpt-5-nano-2025-08-07|minimal|0.7",
+        "openai|gpt-6.1-sol|minimal|0.7",
         "openai_compatible|gpt-5-local-llama|None|0.7",
     )
     for key in keys:

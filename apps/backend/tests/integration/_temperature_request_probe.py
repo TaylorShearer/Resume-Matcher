@@ -159,7 +159,7 @@ async def _main() -> None:
         ("openai", "gpt-5.2-chat-latest", None, 0.7),
         ("openai", "gpt-5.5", None, 0.7),
         ("openai", "gpt-5.1", "medium", 0.7),
-        ("openai", "gpt-5-nano-2025-08-07", "minimal", 0.7),
+        ("openai", "gpt-6.1-sol", "minimal", 0.7),
         ("openai_compatible", "gpt-5.1", None, 0.7),
         ("openai_compatible", "gpt-5.1", "medium", 0.7),
         ("openai_compatible", "gpt-5-local-llama", None, 0.7),

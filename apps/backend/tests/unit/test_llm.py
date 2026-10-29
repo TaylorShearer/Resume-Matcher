@@ -239,7 +239,7 @@ class TestSupportsTemperature:
             "supports_none_reasoning_effort": False,
         }
         assert _supports_temperature("gpt-5.6-terra", 0.1) is False
-        assert _supports_temperature("openai/gpt-5-nano-2025-08-07", 0.7) is False
+        assert _supports_temperature("openai/gpt-6.1-sol", 0.7) is False
         assert _supports_temperature("azure/gpt-5.6-terra", 0.1) is False
         assert _supports_temperature("gpt-5.6-terra", 1.0) is True
 
@@ -380,7 +380,7 @@ class TestGetRetryTemperature:
             "supports_reasoning": True,
             "supports_none_reasoning_effort": False,
         }
-        assert _get_retry_temperature("openai/gpt-5-nano-2025-08-07", 0) is None
+        assert _get_retry_temperature("openai/gpt-6.1-sol", 0) is None
         assert _get_retry_temperature("gpt-5.6-terra", 2) is None
 
     @patch("app.llm.litellm.get_model_info")
@@ -790,7 +790,7 @@ class TestCompleteJsonFallback:
         Anthropic and DeepSeek reasoning models.
         """
         mock_supports_json.return_value = False
-        mock_get_name.return_value = "gpt-5-nano-2025-08-07"
+        mock_get_name.return_value = "openai/gpt-6.1-sol"
 
         empty_choice = MagicMock()
         empty_choice.message.content = ""
@@ -1462,7 +1462,7 @@ class TestReasoningEffortThinkingBudget:
 
         config = LLMConfig(
             provider="openai",
-            model="gpt-5-nano-2025-08-07",
+            model="openai/gpt-6.1-sol",
             api_key="sk-test",
             reasoning_effort="minimal",
         )
