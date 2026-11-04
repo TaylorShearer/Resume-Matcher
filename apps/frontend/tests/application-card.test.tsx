@@ -56,4 +56,11 @@ describe('ApplicationCard', () => {
     expect(badge.querySelector('svg')).toHaveClass('size-4');
     expect(badge.querySelector('svg')).not.toHaveClass('size-3');
   });
+
+  it('provides hover tooltip title and aria-label on the drag handle button', () => {
+    renderCard({ selected: false });
+    const dragButton = screen.getByRole('button', { name: 'tracker.card.dragAria' });
+    expect(dragButton).toHaveAttribute('title', 'tracker.card.dragAria');
+    expect(dragButton).toHaveAttribute('aria-label', 'tracker.card.dragAria');
+  });
 });

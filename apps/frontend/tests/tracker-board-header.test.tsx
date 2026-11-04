@@ -79,7 +79,7 @@ describe('KanbanBoard header', () => {
     expect(add.parentElement).toHaveClass('ml-auto');
   });
 
-  it('keeps the scroll controls at the compact h-8 size', async () => {
+  it('keeps the scroll controls at the compact h-8 size and provides hover titles', async () => {
     // Make the board overflow so the prev/next controls render.
     vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(2000);
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(500);
@@ -89,7 +89,9 @@ describe('KanbanBoard header', () => {
     render(<KanbanBoard />);
 
     for (const name of ['tracker.scroll.prev', 'tracker.scroll.next']) {
-      expect(await screen.findByRole('button', { name })).toHaveClass('h-8', 'w-8');
+      const btn = await screen.findByRole('button', { name });
+      expect(btn).toHaveClass('h-8', 'w-8');
+      expect(btn).toHaveAttribute('title', name);
     }
   });
 });
