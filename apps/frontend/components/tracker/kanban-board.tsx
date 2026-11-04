@@ -248,6 +248,7 @@ export function KanbanBoard() {
                 variant="outline"
                 size="icon-sm"
                 aria-label={t('tracker.scroll.prev')}
+                title={t('tracker.scroll.prev')}
                 onClick={() => scrollByColumn(-1)}
                 disabled={!canScrollLeft}
               >
@@ -258,6 +259,7 @@ export function KanbanBoard() {
                 variant="outline"
                 size="icon-sm"
                 aria-label={t('tracker.scroll.next')}
+                title={t('tracker.scroll.next')}
                 onClick={() => scrollByColumn(1)}
                 disabled={!canScrollRight}
               >

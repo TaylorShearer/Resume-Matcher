@@ -86,6 +86,7 @@ export function ApplicationCard({
             type="button"
             className={`mt-1 shrink-0 cursor-grab text-steel transition-colors hover:text-ink active:cursor-grabbing ${FOCUS_RING}`}
             aria-label={t('tracker.card.dragAria')}
+            title={t('tracker.card.dragAria')}
             {...attributes}
             {...listeners}
           >
