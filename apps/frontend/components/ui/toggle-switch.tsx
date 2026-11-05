@@ -32,6 +32,8 @@ export const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
   className,
 }) => {
   const switchId = React.useId();
+  const labelId = React.useId();
+  const descriptionId = React.useId();
   return (
     <div
       className={cn(
@@ -42,18 +44,25 @@ export const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
       )}
     >
       <label htmlFor={switchId} className={cn('min-w-0 flex-1', !disabled && 'cursor-pointer')}>
-        <span className="block font-mono text-sm font-bold uppercase tracking-wider text-ink">
+        <span
+          id={labelId}
+          className="block font-mono text-sm font-bold uppercase tracking-wider text-ink"
+        >
           {label}
         </span>
         {description && (
-          <span className="mt-1 block font-sans text-xs text-steel">{description}</span>
+          <span id={descriptionId} className="mt-1 block font-sans text-xs text-steel">
+            {description}
+          </span>
         )}
       </label>
       <button
         id={switchId}
         type="button"
         role="switch"
+        aria-labelledby={labelId}
         aria-checked={checked}
+        aria-describedby={description ? descriptionId : undefined}
         disabled={disabled}
         onClick={() => !disabled && onCheckedChange(!checked)}
         className={cn(
