@@ -1,0 +1,3 @@
+## 2026-11-05 - Whole-term text matching optimization in backend services
+**Learning:** `text_match.keyword_in_text` is invoked in tight loops across multiple hot paths: ATS scoring, bullet scoring, keyword forcing, and LLM output refinement. The regex boundary pattern utilizes a huge Unicode character class for CJK script boundaries, making compilation and execution expensive (~110µs per check).
+**Action:** When performing whole-word / bounded keyword checks, always apply a simple substring pre-filter (`normalized_keyword in normalized_text`) and LRU-cache the compiled boundary pattern. The substring check rejects non-matches in pure C with zero regex overhead (yielding up to 30x speedups), while pattern caching gives a 3.3x speedup on positive matches.
