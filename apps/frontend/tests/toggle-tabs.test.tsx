@@ -38,6 +38,26 @@ describe('ToggleSwitch', () => {
     expect(screen.getByRole('switch')).toHaveClass('bg-panel');
     expect(screen.getByRole('switch')).not.toHaveClass('bg-ink');
   });
+
+  it('associates the description with the switch button via aria-describedby', () => {
+    const { rerender } = render(
+      <ToggleSwitch
+        checked={false}
+        onCheckedChange={vi.fn()}
+        label="Strict Mode"
+        description="Enforces ATS parsing validation."
+      />
+    );
+    const desc = screen.getByText('Enforces ATS parsing validation.');
+    expect(desc).toHaveAttribute('id');
+    const toggle = screen.getByRole('switch', { name: 'Strict Mode' });
+    expect(toggle).toHaveAttribute('aria-describedby', desc.getAttribute('id'));
+
+    rerender(<ToggleSwitch checked={false} onCheckedChange={vi.fn()} label="Strict Mode" />);
+    expect(screen.getByRole('switch', { name: 'Strict Mode' })).not.toHaveAttribute(
+      'aria-describedby'
+    );
+  });
 });
 
 describe('RetroTabs', () => {
