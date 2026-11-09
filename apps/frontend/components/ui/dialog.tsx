@@ -19,6 +19,9 @@ interface DialogContextValue {
   onOpenChange: (open: boolean) => void;
   dismissible: boolean;
   titleId: string;
+  descriptionId: string;
+  hasDescription: boolean;
+  setHasDescription: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const DialogContext = React.createContext<DialogContextValue | null>(null);
@@ -43,10 +46,23 @@ interface DialogProps {
 }
 
 const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, dismissible = true, children }) => {
-  // Stable id per dialog instance for aria-labelledby wiring to DialogTitle.
+  // Stable ids per dialog instance for aria-labelledby and aria-describedby wiring.
   const titleId = React.useId();
+  const descriptionId = React.useId();
+  const [hasDescription, setHasDescription] = React.useState(false);
+
   return (
-    <DialogContext.Provider value={{ open, onOpenChange, dismissible, titleId }}>
+    <DialogContext.Provider
+      value={{
+        open,
+        onOpenChange,
+        dismissible,
+        titleId,
+        descriptionId,
+        hasDescription,
+        setHasDescription,
+      }}
+    >
       {children}
     </DialogContext.Provider>
   );
@@ -158,7 +174,8 @@ const DialogContent: React.FC<DialogContentProps> = ({
   size = 'md',
   initialFocusRef,
 }) => {
-  const { open, onOpenChange, dismissible, titleId } = useDialogContext();
+  const { open, onOpenChange, dismissible, titleId, descriptionId, hasDescription } =
+    useDialogContext();
   const { t } = useTranslations();
   const panelRef = React.useRef<HTMLDivElement>(null);
   const idRef = React.useRef(Symbol('dialog'));
@@ -261,6 +278,7 @@ const DialogContent: React.FC<DialogContentProps> = ({
               role="dialog"
               aria-modal="true"
               aria-labelledby={titleId}
+              aria-describedby={hasDescription ? descriptionId : undefined}
               tabIndex={-1}
               onKeyDown={trapTab}
               onClick={(e) => e.stopPropagation()}
@@ -355,9 +373,24 @@ const DialogTitle: React.FC<DialogPartProps> = ({ className, children }) => {
   );
 };
 
-const DialogDescription: React.FC<DialogPartProps> = ({ className, children }) => (
-  <p className={cn('text-sm text-ink-soft text-pretty', className)}>{children}</p>
-);
+const DialogDescription: React.FC<DialogPartProps & { id?: string }> = ({
+  id,
+  className,
+  children,
+}) => {
+  const { descriptionId, setHasDescription } = useDialogContext();
+
+  React.useEffect(() => {
+    setHasDescription(true);
+    return () => setHasDescription(false);
+  }, [setHasDescription]);
+
+  return (
+    <p id={id ?? descriptionId} className={cn('text-sm text-ink-soft text-pretty', className)}>
+      {children}
+    </p>
+  );
+};
 
 export {
   Dialog,
