@@ -10,17 +10,17 @@
 
 App Router under `app/`. A `(default)` route group wraps the main app in providers; `print/*` is provider-free (server-rendered for headless-Chromium PDF capture).
 
-| Route | File | Type | Purpose |
-|-------|------|------|---------|
-| `/` | `app/(default)/page.tsx` | Server | Landing — renders `<Hero/>` |
-| `/dashboard` | `app/(default)/dashboard/page.tsx` | Client | Resume list, upload, delete, retry, status grid |
-| `/builder` | `app/(default)/builder/page.tsx` | Client wrapper → `components/builder/resume-builder.tsx` | Master-resume editor (forms, drag-drop sections, templates, AI regenerate, cover letter / outreach) |
-| `/tailor` | `app/(default)/tailor/page.tsx` | Client | Paste JD → preview/confirm tailored resume (diff modal) |
-| `/tracker` | `app/(default)/tracker/page.tsx` | Client | Kanban application tracker — 7-column board (drag/drop, bulk ops, manual add) |
-| `/settings` | `app/(default)/settings/page.tsx` | Client | LLM provider/model/key, per-provider API keys, features, prompts, language, reset DB |
-| `/resumes/[id]` | `app/(default)/resumes/[id]/page.tsx` | Client | View one resume, download PDF, rename, enrichment modal |
-| `/print/resumes/[id]` | `app/print/resumes/[id]/page.tsx` | **Server** | Print-only resume render for PDF (reads `searchParams` for template settings + `lang`) |
-| `/print/cover-letter/[id]` | `app/print/cover-letter/[id]/page.tsx` | **Server** | Print-only cover-letter render for PDF |
+| Route                      | File                                   | Type                                                     | Purpose                                                                                             |
+| -------------------------- | -------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `/`                        | `app/(default)/page.tsx`               | Server                                                   | Landing — renders `<Hero/>`                                                                         |
+| `/dashboard`               | `app/(default)/dashboard/page.tsx`     | Client                                                   | Resume list, upload, delete, retry, status grid                                                     |
+| `/builder`                 | `app/(default)/builder/page.tsx`       | Client wrapper → `components/builder/resume-builder.tsx` | Master-resume editor (forms, drag-drop sections, templates, AI regenerate, cover letter / outreach) |
+| `/tailor`                  | `app/(default)/tailor/page.tsx`        | Client                                                   | Paste JD → preview/confirm tailored resume (diff modal)                                             |
+| `/tracker`                 | `app/(default)/tracker/page.tsx`       | Client                                                   | Kanban application tracker — 7-column board (drag/drop, bulk ops, manual add)                       |
+| `/settings`                | `app/(default)/settings/page.tsx`      | Client                                                   | LLM provider/model/key, per-provider API keys, features, prompts, language, reset DB                |
+| `/resumes/[id]`            | `app/(default)/resumes/[id]/page.tsx`  | Client                                                   | View one resume, download PDF, rename, enrichment modal                                             |
+| `/print/resumes/[id]`      | `app/print/resumes/[id]/page.tsx`      | **Server**                                               | Print-only resume render for PDF (reads `searchParams` for template settings + `lang`)              |
+| `/print/cover-letter/[id]` | `app/print/cover-letter/[id]/page.tsx` | **Server**                                               | Print-only cover-letter render for PDF                                                              |
 
 `app/layout.tsx` (root) wires fonts (Space Grotesk for the label face, Noto Sans SC/KR/JP as CJK fallbacks for resume content), the `theme-color` viewport meta (`lib/theme-color.ts`, kept equal to Canvas by a test) and global CSS. `app/(default)/layout.tsx` nests providers: `StatusCacheProvider` → `LanguageProvider` → `ResumePreviewProvider` → `LocalizedErrorBoundary` → `MotionProvider` → `EffectsProvider` (whether the page background effect is on: default on, stored in localStorage, toggled in Settings; outside the provider effects are off, so `print/*` never shows one).
 
@@ -91,6 +91,7 @@ All backend calls go through **`lib/api/`** — never call `fetch` to the backen
 **Contracts:** `lib/api/*` interfaces mirror backend Pydantic schemas. See [front-end-apis.md](../../docs/agent/apis/front-end-apis.md) and [api-flow-maps.md](../../docs/agent/apis/api-flow-maps.md).
 
 **Shared client state (React Context, not a fetch lib):**
+
 - `StatusCacheProvider` (`lib/context/status-cache.tsx`) — caches `/status` (LLM health 30min, DB stats 5min stale), with optimistic counter updates. Use `useStatusCache()` / `useIsStatusStale()`.
 - `LanguageProvider` (`lib/context/language-context.tsx`) — UI + content language, localStorage + backend sync. Use `useLanguage()`.
 
@@ -101,12 +102,14 @@ All backend calls go through **`lib/api/`** — never call `fetch` to the backen
 ## i18n — READ THIS BEFORE TOUCHING TRANSLATIONS
 
 Two distinct settings, configured independently in Settings:
+
 - **UI language** — interface text, client-only (`uiLanguage`, localStorage).
 - **Content language** — language the LLM writes resumes/cover letters in (`contentLanguage`, persisted to backend).
 
 **Supported locales (source of truth = `i18n/config.ts`):** `en`, `es`, `zh`, `ja`, `pt`, `fr`, `ko` — seven (the `pt` file is `messages/pt-BR.json`, imported as `pt`). The `docs/agent/features/i18n.md` table may lag behind; trust the code.
 
 Engine (no external i18n lib, plain JSON):
+
 - `i18n/config.ts` — `locales`, `defaultLocale='en'`, `localeNames`, `localeFlags`.
 - `lib/i18n/messages.ts` — static-imports every locale JSON; the critical types live here.
 - `lib/i18n/translations.ts` — `useTranslations()` returns `{ t, messages, locale }`; `t('a.b.c', params)` does dot-path lookup + `{placeholder}` substitution. Missing key returns the key string (no throw).
@@ -115,10 +118,12 @@ Engine (no external i18n lib, plain JSON):
 ### ⚠️ CRITICAL build-breaking constraint
 
 `lib/i18n/messages.ts`:
+
 ```ts
-export type Messages = typeof en;                       // shape derived from en.json
+export type Messages = typeof en; // shape derived from en.json
 const allMessages: Record<Locale, Messages> = { en, es, zh, ja, pt, fr, ko };
 ```
+
 Because every locale is typed as `Messages` (= the exact shape of `en.json`), **every locale JSON must structurally match `en.json` exactly.** Add a key to `en.json` and the production `tsc` / `next build` FAILS until that same key path exists in `es`, `fr`, `ja`, `ko`, `pt-BR`, and `zh`. (A real build break was caused by exactly this.)
 
 **When editing translations:** any key you add/remove/rename in `en.json` MUST be mirrored in all 7 files (`en`, `es`, `fr`, `ja`, `ko`, `pt-BR`, `zh`) with identical structure (`scripts/check_locale_parity.py` and `tests/i18n-locale-parity.test.ts` enforce it). `npm run dev` may tolerate drift; the build will not.
@@ -135,24 +140,25 @@ All UI changes MUST follow the Swiss design system. Pack: [README](../../docs/po
 
 Tailwind v4, configured **in CSS** (`app/(default)/css/globals.css`: hex values on `:root` as `--sw-*`, mapped in `@theme inline`) — there is no `tailwind.config`. PostCSS uses `@tailwindcss/postcss`. Light theme only. Use semantic tokens only; raw hex, `rgba()` and Tailwind palette scales (`blue-700`, `gray-500`) are banned outside `globals.css`.
 
-| Token | Hex | Use |
-|-------|-----|-----|
-| `canvas` | `#F0F0E8` | Page background (`bg-canvas`) |
-| `white` | `#FFFFFF` | Elevated surfaces: cards, inputs, dialogs |
-| `ink` / `ink-soft` | `#000000` / `#3D424C` | Headings and borders / body text |
-| `steel` | `#696D75` | Secondary text, placeholders. Never on `panel` |
-| `paper`, `panel`, `panel-hover` | `#F5F5F0`, `#E5E5E0`, `#D8D8D2` | Sub-panel tint, secondary fills, hover fill |
-| `primary` (+`-hover`) | `#1D4ED8` | Hyper Blue: links, primary actions, focus |
-| `success` (+`-hover`) | `#127E3B` | Signal Green |
-| `destructive` (+`-hover`) | `#D61E21` | Alert Red |
-| `warning` (+`-hover`) | `#F97316` | Alert Orange fill. **Ink text only**; use `warning-text` (`#B44F02`) for orange labels and icons |
-| `info-tint`, `success-tint`, `warning-tint`, `destructive-tint` | `#EFF6FF`, `#F0FDF4`, `#FFF7ED`, `#FEF2F2` | Alert fills |
-| `highlight`, `overlay` | `#FFF085`, `rgb(0 0 0 / 0.5)` | Keyword `<mark>`; dialog backdrop |
+| Token                                                           | Hex                                        | Use                                                                                              |
+| --------------------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| `canvas`                                                        | `#F0F0E8`                                  | Page background (`bg-canvas`)                                                                    |
+| `white`                                                         | `#FFFFFF`                                  | Elevated surfaces: cards, inputs, dialogs                                                        |
+| `ink` / `ink-soft`                                              | `#000000` / `#3D424C`                      | Headings and borders / body text                                                                 |
+| `steel`                                                         | `#696D75`                                  | Secondary text, placeholders. Never on `panel`                                                   |
+| `paper`, `panel`, `panel-hover`                                 | `#F5F5F0`, `#E5E5E0`, `#D8D8D2`            | Sub-panel tint, secondary fills, hover fill                                                      |
+| `primary` (+`-hover`)                                           | `#1D4ED8`                                  | Hyper Blue: links, primary actions, focus                                                        |
+| `success` (+`-hover`)                                           | `#127E3B`                                  | Signal Green                                                                                     |
+| `destructive` (+`-hover`)                                       | `#D61E21`                                  | Alert Red                                                                                        |
+| `warning` (+`-hover`)                                           | `#F97316`                                  | Alert Orange fill. **Ink text only**; use `warning-text` (`#B44F02`) for orange labels and icons |
+| `info-tint`, `success-tint`, `warning-tint`, `destructive-tint` | `#EFF6FF`, `#F0FDF4`, `#FFF7ED`, `#FEF2F2` | Alert fills                                                                                      |
+| `highlight`, `overlay`                                          | `#FFF085`, `rgb(0 0 0 / 0.5)`              | Keyword `<mark>`; dialog backdrop                                                                |
 
 Conventions:
+
 - **Geometry:** `rounded-none` everywhere. **1px ink borders** (`border border-ink`) on controls, fields, cards and dialogs; 2px on alerts and emphasised cards.
-- **Shadows are roles, always hard (never blurred):** *solid ink* for what floats or presses: `shadow-sw-sm` controls (via `Button`/`buttonClass`) · `shadow-sw-default` dropdown menus, listboxes, popovers, toasts · `shadow-sw-lg` dialogs and `PageFrame` · `shadow-sw-xl` home hero frame only · `shadow-sw-card` resume and cover-letter sheet only. *Translucent ink* for what is nested: `shadow-sw-nested` (4px, 15% ink, no blur) on every card, panel, box or section inside a `PageFrame` or a dialog (choice cards, stat boxes, form section boxes, toggle cards, tracker cards). Nothing nested keeps a solid shadow, and sibling boxes match, so a neighbour with no shadow gets the nested one too. `Card variant="raised"` and `ToggleSwitch variant="card"` already use it. No `shadow-md`, no `shadow-[…]`. Hover presses in (`hover:translate-x-px hover:translate-y-px hover:shadow-none`); nothing lifts. `tests/swiss-shadows.test.ts` pins the six tokens.
-- **Fonts, as rendered:** `font-sans` is Helvetica/Arial (body, `ink-soft`); `font-mono` is the label-face role and resolves to Space Grotesk, which is *not* a monospace; `font-serif` is Tailwind's default stack. No Geist. Type floor is `text-xs`; page H1 is `text-4xl md:text-5xl` serif bold uppercase; section headers are sentence case.
+- **Shadows are roles, always hard (never blurred):** _solid ink_ for what floats or presses: `shadow-sw-sm` controls (via `Button`/`buttonClass`) · `shadow-sw-default` dropdown menus, listboxes, popovers, toasts · `shadow-sw-lg` dialogs and `PageFrame` · `shadow-sw-xl` home hero frame only · `shadow-sw-card` resume and cover-letter sheet only. _Translucent ink_ for what is nested: `shadow-sw-nested` (4px, 15% ink, no blur) on every card, panel, box or section inside a `PageFrame` or a dialog (choice cards, stat boxes, form section boxes, toggle cards, tracker cards). Nothing nested keeps a solid shadow, and sibling boxes match, so a neighbour with no shadow gets the nested one too. `Card variant="raised"` and `ToggleSwitch variant="card"` already use it. No `shadow-md`, no `shadow-[…]`. Hover presses in (`hover:translate-x-px hover:translate-y-px hover:shadow-none`); nothing lifts. `tests/swiss-shadows.test.ts` pins the six tokens.
+- **Fonts, as rendered:** `font-sans` is Helvetica/Arial (body, `ink-soft`); `font-mono` is the label-face role and resolves to Space Grotesk, which is _not_ a monospace; `font-serif` is Tailwind's default stack. No Geist. Type floor is `text-xs`; page H1 is `text-4xl md:text-5xl` serif bold uppercase; section headers are sentence case.
 - **Spacing:** 4px scale: `1, 2, 3, 4, 6, 8, 12, 16`. No `5, 7, 9, 10, 11, 14`, no half-steps outside `components/ui/**`.
 - **Selection is ink, blue is action:** a selected segment, tab or switch is `bg-ink text-white`.
 - **Clickable tile highlight (owner decision, round 2):** a dashboard tile highlights on hover and keyboard focus with a full `bg-primary` fill and white text, and **no ink outline**. Keyboard focus keeps the fill and adds a 2px inset white ring (`focus-visible:ring-2 ring-inset ring-white`). It replaces the earlier white-lift tile treatment.
@@ -222,6 +228,7 @@ Backend must run separately on :8000 (see root CLAUDE.md). Frontend proxies `/ap
 `vitest` (jsdom) + Testing Library. Config `vitest.config.ts`, setup `vitest.setup.ts` (auto-cleanup, and a global mock of `motion/react` that renders `m.*` as plain DOM and presence as a passthrough, so tests see the final state immediately). Run `npm run test` (or `./node_modules/.bin/vitest run`). **Tests are in scope** (see [testing-strategy.md](../../docs/agent/testing-strategy.md)); keep them deterministic and anti-theater (a test must fail when its target breaks).
 
 Specs (`tests/`):
+
 - **i18n** — `i18n-utils.test.ts` (`getNestedValue` dot-path + `applyParams` substitution), `i18n-locale-parity.test.ts` (every `messages/*.json` must structurally match `en.json` — the in-suite guard for the build break).
 - **lib/utils** — `keyword-matcher.test.ts`, `section-helpers.test.ts`, `html-sanitizer.test.ts` (XSS whitelist), `download-utils.test.ts`.
 - **lib/api** — `api-client.test.ts` (URL resolution, timeout/AbortError; `fetch` stubbed).
@@ -235,21 +242,21 @@ Pure logic (i18n, utils, api) is tested directly with stubbed `fetch`/`t`; compo
 
 ## Documentation by Task
 
-| Task | Docs |
-|------|------|
-| Frontend architecture / user flow | [frontend-architecture.md](../../docs/agent/architecture/frontend-architecture.md), [frontend-workflow.md](../../docs/agent/architecture/frontend-workflow.md) |
-| Coding conventions | [coding-standards.md](../../docs/agent/coding-standards.md) |
-| API contracts | [front-end-apis.md](../../docs/agent/apis/front-end-apis.md), [api-flow-maps.md](../../docs/agent/apis/api-flow-maps.md) |
-| Scope / principles / process | [scope-and-principles.md](../../docs/agent/scope-and-principles.md), [workflow.md](../../docs/agent/workflow.md) |
-| Swiss design system (MANDATORY) | [pack README](../../docs/portable/swiss-design-system/README.md), [tokens](../../docs/portable/swiss-design-system/tokens.md), [components](../../docs/portable/swiss-design-system/components.md), [anti-patterns](../../docs/portable/swiss-design-system/anti-patterns.md), [layouts](../../docs/portable/swiss-design-system/layouts.md) |
-| Swiss realignment (decisions, tokens, phases) | [swiss-realignment-design.md](../../docs/superpowers/specs/2026-10-10-swiss-realignment-design.md) |
-| First-load JS budget and the Motion alias | [first-load-js.md](../../docs/agent/architecture/first-load-js.md) |
-| Next.js performance (REQUIRED) | [pack README](../../docs/portable/nextjs-performance/README.md), [checklist](../../docs/portable/nextjs-performance/checklist.md) |
-| i18n | [i18n.md](../../docs/agent/features/i18n.md), [i18n-preparation.md](../../docs/agent/features/i18n-preparation.md) |
-| Resume templates / PDF | [resume-templates.md](../../docs/agent/features/resume-templates.md), [template-system.md](../../docs/agent/design/template-system.md), [pdf-template-guide.md](../../docs/agent/design/pdf-template-guide.md), [adding-resume-templates.md](../../docs/agent/features/adding-resume-templates.md) |
-| Custom sections | [custom-sections.md](../../docs/agent/features/custom-sections.md) |
-| AI enrichment | [enrichment.md](../../docs/agent/features/enrichment.md) |
-| JD matching | [jd-match.md](../../docs/agent/features/jd-match.md) |
+| Task                                          | Docs                                                                                                                                                                                                                                                                                                                                         |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frontend architecture / user flow             | [frontend-architecture.md](../../docs/agent/architecture/frontend-architecture.md), [frontend-workflow.md](../../docs/agent/architecture/frontend-workflow.md)                                                                                                                                                                               |
+| Coding conventions                            | [coding-standards.md](../../docs/agent/coding-standards.md)                                                                                                                                                                                                                                                                                  |
+| API contracts                                 | [front-end-apis.md](../../docs/agent/apis/front-end-apis.md), [api-flow-maps.md](../../docs/agent/apis/api-flow-maps.md)                                                                                                                                                                                                                     |
+| Scope / principles / process                  | [scope-and-principles.md](../../docs/agent/scope-and-principles.md), [workflow.md](../../docs/agent/workflow.md)                                                                                                                                                                                                                             |
+| Swiss design system (MANDATORY)               | [pack README](../../docs/portable/swiss-design-system/README.md), [tokens](../../docs/portable/swiss-design-system/tokens.md), [components](../../docs/portable/swiss-design-system/components.md), [anti-patterns](../../docs/portable/swiss-design-system/anti-patterns.md), [layouts](../../docs/portable/swiss-design-system/layouts.md) |
+| Swiss realignment (decisions, tokens, phases) | [swiss-realignment-design.md](../../docs/superpowers/specs/2026-10-10-swiss-realignment-design.md)                                                                                                                                                                                                                                           |
+| First-load JS budget and the Motion alias     | [first-load-js.md](../../docs/agent/architecture/first-load-js.md)                                                                                                                                                                                                                                                                           |
+| Next.js performance (REQUIRED)                | [pack README](../../docs/portable/nextjs-performance/README.md), [checklist](../../docs/portable/nextjs-performance/checklist.md)                                                                                                                                                                                                            |
+| i18n                                          | [i18n.md](../../docs/agent/features/i18n.md), [i18n-preparation.md](../../docs/agent/features/i18n-preparation.md)                                                                                                                                                                                                                           |
+| Resume templates / PDF                        | [resume-templates.md](../../docs/agent/features/resume-templates.md), [template-system.md](../../docs/agent/design/template-system.md), [pdf-template-guide.md](../../docs/agent/design/pdf-template-guide.md), [adding-resume-templates.md](../../docs/agent/features/adding-resume-templates.md)                                           |
+| Custom sections                               | [custom-sections.md](../../docs/agent/features/custom-sections.md)                                                                                                                                                                                                                                                                           |
+| AI enrichment                                 | [enrichment.md](../../docs/agent/features/enrichment.md)                                                                                                                                                                                                                                                                                     |
+| JD matching                                   | [jd-match.md](../../docs/agent/features/jd-match.md)                                                                                                                                                                                                                                                                                         |
 
 ---
 
