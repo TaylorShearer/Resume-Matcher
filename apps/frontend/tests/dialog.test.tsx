@@ -10,6 +10,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 
 vi.mock('@/lib/i18n', () => ({ useTranslations: () => ({ t: (key: string) => key }) }));
@@ -207,6 +208,30 @@ describe('Dialog', () => {
   it('leaves overscroll containment to the body, not the panel', () => {
     openDialog();
     expect(screen.getByRole('dialog')).not.toHaveClass('overscroll-contain');
+  });
+
+  it('wires aria-describedby when DialogDescription is rendered', () => {
+    render(
+      <Dialog open onOpenChange={vi.fn()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Described modal</DialogTitle>
+            <DialogDescription>Helpful explanation for screen readers</DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    );
+
+    const dialog = screen.getByRole('dialog');
+    const description = screen.getByText('Helpful explanation for screen readers');
+    expect(dialog).toHaveAttribute('aria-describedby', description.id);
+    expect(description.id).toBeTruthy();
+  });
+
+  it('omits aria-describedby when DialogDescription is not present', () => {
+    openDialog();
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).not.toHaveAttribute('aria-describedby');
   });
 
   describe('while AnimatePresence keeps it mounted to exit', () => {
